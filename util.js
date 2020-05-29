@@ -15,20 +15,20 @@ const { Readable } = require("stream");
 function findTopWords(sentence, numberOfPositions = 3) {
   if (!sentence.trim()) return [];
 
-  // Filter for the words only, removing ponctuation
+  // Filter for the words only, removing ponctuation and numbers (are numbers considered words?)
   const str = sentence.toLowerCase().replace(/[^a-zA-Z ]+/g, "");
   if (!str.trim()) return [];
 
-  // Find the number of occurencies for each word
+  // Find the number of occurrences for each word
   const words = str.split(" ");
-  const occurencies = new Map();
+  const occurrences = new Map();
   for (const word of words) {
-    let value = occurencies.has(word) ? occurencies.get(word) : { word, count: 0 };
-    occurencies.set(word, { word, count: value.count + 1 });
+    let value = occurrences.has(word) ? occurrences.get(word) : { word, count: 0 };
+    occurrences.set(word, { word, count: value.count + 1 });
   }
 
   // Sort the array by count desc
-  const sorted = [...occurencies.values()].sort((a, b) => (a.count > b.count ? -1 : 1));
+  const sorted = [...occurrences.values()].sort((a, b) => (a.count > b.count ? -1 : 1));
 
   // Return the top words
   return sorted.map((o) => o.word.toLowerCase()).slice(0, numberOfPositions);
@@ -45,23 +45,25 @@ function findTopWordsAsync(sentence, numberOfPositions = 3) {
     try {
       if (!sentence.trim()) return resolve([]);
 
-      // Filter for the words only, removing ponctuation
+      // Filter for the words only, removing ponctuation (are numbers considered words?)
       const str = sentence.toLowerCase().replace(/[^a-zA-Z ]+/g, "");
       if (!str.trim()) return resolve([]);
 
       // Creates a readble stream from the array of words
+      // Could probably use readline module for reading a file line by line and count the occurrences
+      //
       const stream = Readable.from(str.split(" "));
-      const occurencies = new Map();
+      const occurrences = new Map();
 
-      // Find the number of occurencies for each word
+      // Find the number of occurrences for each word
       stream.on("data", (word) => {
-        let value = occurencies.has(word) ? occurencies.get(word) : { word, count: 0 };
-        occurencies.set(word, { word, count: value.count + 1 });
+        let value = occurrences.has(word) ? occurrences.get(word) : { word, count: 0 };
+        occurrences.set(word, { word, count: value.count + 1 });
       });
 
       // Finished reading the words, sort the array to find the top words
       stream.on("end", () => {
-        const sorted = [...occurencies.values()].sort((a, b) => (a.count > b.count ? -1 : 1));
+        const sorted = [...occurrences.values()].sort((a, b) => (a.count > b.count ? -1 : 1));
         return resolve(sorted.map((o) => o.word.toLowerCase()).slice(0, numberOfPositions));
       });
     } catch (err) {

@@ -51,7 +51,6 @@ function findTopWordsAsync(sentence, numberOfPositions = 3) {
 
       // Creates a readble stream from the array of words
       // Could probably use readline module for reading a file line by line and count the occurrences
-      //
       const stream = Readable.from(str.split(" "));
       const occurrences = new Map();
 
